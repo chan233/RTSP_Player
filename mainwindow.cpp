@@ -99,7 +99,7 @@ void MainWindow::paintEvent(QPaintEvent *event)
     double y_Vertical_up=length*qCos(alpha);
     double x_Vertical_down=-length*qSin(alpha);
     double y_Vertical_down=-length*qCos(alpha);
-
+//666
     ///水平参考坐标系，2017.8.7---lizhen
     painter.setPen(QPen(Qt::blue,1,Qt::DotLine));
     painter.drawLine( x0-40,y0, x0+40,y0);
