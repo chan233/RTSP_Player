@@ -23,7 +23,7 @@ extern "C"
 using namespace std;
 void openMp4File(AVFormatContext *outFmtCtx,AVCodecParameters *codecPara);
 int wirteMP4(AVPacket *packet,AVStream *inVStream, AVStream *outVStream , AVFormatContext *outFmtCtx,int outVStreamIndex);
-Player::Player():is_start(false),is_pause(false),is_record(false){}
+Player::Player():is_start(false),is_pause(false),is_record(false),is_stop(false){}
 
 Player::~Player()
 {
@@ -31,6 +31,13 @@ Player::~Player()
 }
 void Player::setUrl(std::string url){
     rtsp_url = url;
+}
+void Player::start(){
+    std::thread t(this->run,this);
+    t.detach();
+}
+void Player::stop(){
+    is_stop = true;
 }
 void Player::startPlay()
 {
@@ -60,8 +67,10 @@ void Player::stopRecord(){
     is_record = false;
 }
 
-void Player::run()
+void Player::run(void* pParam)
 {
+
+    Player *pplayer = (Player *)pParam;
     AVFormatContext *pFormatCtx;
     AVCodecContext *pCodecCtx;
     const AVCodec *pCodec;
@@ -89,10 +98,10 @@ void Player::run()
     av_dict_set(&avdic,option_key2,option_value2,0);
     ///rtsp地址，可根据实际情况修改
     //char url[]="rtsp://192.168.151.34:8554/123";
-    if(rtsp_url.empty()){
+    if(pplayer->rtsp_url.empty()){
         return;
     }
-    const char *url = rtsp_url.c_str();
+    const char *url = pplayer->rtsp_url.c_str();
     if (avformat_open_input(&pFormatCtx, url, NULL, &avdic) != 0) {
         printf("can't open the file. \n");
         return;
@@ -261,6 +270,9 @@ void Player::run()
 
     while (1)
     {
+        if(pplayer->is_stop){
+            break;
+        }
         if (av_read_frame(pFormatCtx, packet) < 0)
         {
             av_write_trailer(outFmtCtx);
@@ -282,9 +294,9 @@ void Player::run()
                           pFrame->linesize, 0, pCodecCtx->height, pFrameRGB->data,
                           pFrameRGB->linesize);
                 //把这个RGB数据 用QImage加载
-                QImage tmpImg((uchar *)out_buffer,pCodecCtx->width,pCodecCtx->height,QImage::Format_RGBA8888);
-                QImage image = tmpImg.copy(); //把图像复制一份 传递给界面显示
-                mpCallbackfun((uchar *)out_buffer,pCodecCtx->width,pCodecCtx->height,mptr); // 改为回调
+                //QImage tmpImg((uchar *)out_buffer,pCodecCtx->width,pCodecCtx->height,QImage::Format_RGBA8888);
+                //QImage image = tmpImg.copy(); //把图像复制一份 传递给界面显示
+                pplayer->mpCallbackfun((uchar *)out_buffer,pCodecCtx->width,pCodecCtx->height,pplayer->mptr); // 改为回调
                 //emit sig_GetOneFrame(image);  //发送信号
                 //    ///2017.8.11---lizhen
                 //             //提取出图像中的R数据
@@ -312,7 +324,7 @@ void Player::run()
         av_packet_unref(packet); //释放资源,否则内存会一直上升
 
         ///2017.8.7---lizhen
-        msleep(0.02); //停一停  不然放的太快了
+        //msleep(0.02); //停一停  不然放的太快了
     }
     av_free(out_buffer);
     av_free(pFrameRGB);
@@ -354,6 +366,8 @@ int wirteMP4(AVPacket *packet,AVStream *inVStream, AVStream *outVStream , AVForm
 
     //end of mp4
 }
+
+
 void openMp4File(AVFormatContext *outFmtCtx,AVCodecParameters *codecPara)
 {
 

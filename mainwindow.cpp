@@ -21,9 +21,9 @@ MainWindow::MainWindow(QWidget *parent) :
     ui->setupUi(this);
 
     mPlayer = new Player;
-    connect(mPlayer,SIGNAL(sig_GetOneFrame(QImage)),this,SLOT(slotGetOneFrame(QImage)));
+    //connect(mPlayer,SIGNAL(sig_GetOneFrame(QImage)),this,SLOT(slotGetOneFrame(QImage)));
     ///2017.8.11---lizhen
-    connect(mPlayer,SIGNAL(sig_GetRFrame(QImage)),this,SLOT(slotGetRFrame(QImage)));
+    //connect(mPlayer,SIGNAL(sig_GetRFrame(QImage)),this,SLOT(slotGetRFrame(QImage)));
     ///2017.8.12---lizhen
     connect(ui->Open_red,&QAction::triggered,this,&MainWindow::slotOpenRed);
     connect(ui->Close_Red,&QAction::triggered,this,&MainWindow::slotCloseRed);

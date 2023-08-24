@@ -8,17 +8,18 @@
 #ifndef Player_H
 #define Player_H
 
-#include <QThread>
-#include <QImage>
+
 #include <string>
+#include <thread>
 //2017.8.10---lizhen
 class VlcInstance;
 class VlcMedia;
 class VlcMediaPlayer;
+typedef unsigned char uchar ;
 typedef void (*MyCallBackFunc)(uchar* ,int,int,void*);
-class Player : public QThread
+class Player
 {
-    Q_OBJECT
+
 
 public:
     explicit Player();
@@ -31,19 +32,18 @@ public:
     void setUrl(std::string url);
     void startRecord();
     void stopRecord();
+    void stop();
     bool registerCallBack(void (*callfuct)(uchar*,int,int,void*),void*ptr);
 
-signals:
-    void sig_GetOneFrame(QImage); //每获取到一帧图像 就发送此信号
-    void sig_GetRFrame(QImage);   ///2017.8.11---lizhen
 
 protected:
-    void run();
+    static void run(void* pParam);
 
 private:
-    QString mFileName;
-    MyCallBackFunc mpCallbackfun;
-    void *mptr;
+    void start();
+
+
+
     //2017.8.10---lizhen
     VlcInstance *_instance;
     VlcMedia *_media;
@@ -51,7 +51,11 @@ private:
     bool is_start;
     bool is_pause ;
     bool is_record ;
+    bool is_stop;
+
     std::string rtsp_url;
+    MyCallBackFunc mpCallbackfun;
+    void *mptr;
 
 };
 
