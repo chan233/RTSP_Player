@@ -23,22 +23,41 @@ extern "C"
 using namespace std;
 void openMp4File(AVFormatContext *outFmtCtx,AVCodecParameters *codecPara);
 int wirteMP4(AVPacket *packet,AVStream *inVStream, AVStream *outVStream , AVFormatContext *outFmtCtx,int outVStreamIndex);
-Player::Player()
-{
+Player::Player():is_start(false),is_pause(false),is_record(false){}
 
-}
-
-#include "player.h"
 Player::~Player()
 {
 
 }
-
+void Player::setUrl(std::string url){
+    rtsp_url = url;
+}
 void Player::startPlay()
 {
     ///调用 QThread 的start函数 将会自动执行下面的run函数 run函数是一个新的线程
-    this->start();
+    ///
+    if(!is_start){
+        this->start();
+    }
 
+    is_start = true;
+
+}
+
+void Player::stopPlay(){
+    is_start = false;
+}
+void Player::pausePlay(){
+
+    is_pause = true;
+}
+
+
+void Player::startRecord(){
+    is_record = true;
+}
+void Player::stopRecord(){
+    is_record = false;
 }
 
 void Player::run()
@@ -69,8 +88,11 @@ void Player::run()
     char option_value2[]="100";
     av_dict_set(&avdic,option_key2,option_value2,0);
     ///rtsp地址，可根据实际情况修改
-    char url[]="rtsp://192.168.151.34:8554/123";
-
+    //char url[]="rtsp://192.168.151.34:8554/123";
+    if(rtsp_url.empty()){
+        return;
+    }
+    const char *url = rtsp_url.c_str();
     if (avformat_open_input(&pFormatCtx, url, NULL, &avdic) != 0) {
         printf("can't open the file. \n");
         return;
@@ -262,7 +284,8 @@ void Player::run()
                 //把这个RGB数据 用QImage加载
                 QImage tmpImg((uchar *)out_buffer,pCodecCtx->width,pCodecCtx->height,QImage::Format_RGBA8888);
                 QImage image = tmpImg.copy(); //把图像复制一份 传递给界面显示
-                emit sig_GetOneFrame(image);  //发送信号
+                mpCallbackfun((uchar *)out_buffer,pCodecCtx->width,pCodecCtx->height,mptr); // 改为回调
+                //emit sig_GetOneFrame(image);  //发送信号
                 //    ///2017.8.11---lizhen
                 //             //提取出图像中的R数据
                 //             for(int i=0;i<pCodecCtx->width;i++)
@@ -395,4 +418,13 @@ void openMp4File(AVFormatContext *outFmtCtx,AVCodecParameters *codecPara)
     printf("============Output Information=============>\n");
     av_dump_format(outFmtCtx,0,outFileName,1);
     printf("============Output Information=============<\n");
+}
+
+bool Player::registerCallBack(void (*callfuct)(uchar* ,int,int,void*) ,void *ptr){
+
+
+
+    mpCallbackfun = callfuct;
+    mptr = ptr;
+    return true;
 }

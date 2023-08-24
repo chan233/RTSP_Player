@@ -7,8 +7,16 @@ ViedoFrame::ViedoFrame(QWidget *parent) :
     ui(new Ui::ViedoFrame)
 {
     ui->setupUi(this);
+    mPlayer = new Player;
+    mPlayer->registerCallBack(callback,(void*)this);
 }
+void ViedoFrame::callback(uchar* buffer,int width,int height,void* object_ptr){
 
+    ViedoFrame * vfptr = (ViedoFrame*) object_ptr;
+    transBufferToImage(buffer,width,height);
+    vfptr->update();
+
+}
 ViedoFrame::~ViedoFrame()
 {
     delete ui;
@@ -50,26 +58,26 @@ void ViedoFrame::paintEvent(QPaintEvent *event)
     painter.drawImage(QPoint(x,y),img); //画出图像
 
     if(open_red==true){
-    ///2017.8.12
-    QWidget *red_video=new QWidget(this);
-    red_video->resize(this->width()/3,this->height()/3);
-    ///2017.8.11---lizhen
-    //提取出图像中的R数据
-    painter.setBrush(Qt::white);
-    painter.drawRect(0, 0, red_video->width(),red_video->height()); //先画成白色
+        ///2017.8.12
+        QWidget *red_video=new QWidget(this);
+        red_video->resize(this->width()/3,this->height()/3);
+        ///2017.8.11---lizhen
+        //提取出图像中的R数据
+        painter.setBrush(Qt::white);
+        painter.drawRect(0, 0, red_video->width(),red_video->height()); //先画成白色
 
-    if (R_mImage.size().width() <= 0) return;
+        if (R_mImage.size().width() <= 0) return;
 
-    ///将图像按比例缩放成和窗口一样大小
-    QImage R_img = R_mImage.scaled(red_video->size(),Qt::KeepAspectRatio);
+        ///将图像按比例缩放成和窗口一样大小
+        QImage R_img = R_mImage.scaled(red_video->size(),Qt::KeepAspectRatio);
 
-    int R_x = red_video->width() - R_img.width();
-    int R_y = red_video->height() - R_img.height();
+        int R_x = red_video->width() - R_img.width();
+        int R_y = red_video->height() - R_img.height();
 
-    R_x /= 2;
-    R_y /= 2;
+        R_x /= 2;
+        R_y /= 2;
 
-    painter.drawImage(QPoint(R_x,R_y),R_img);  //画出图像
+        painter.drawImage(QPoint(R_x,R_y),R_img);  //画出图像
     }
 
     ///2017.8.10---lizhen
@@ -104,4 +112,47 @@ void ViedoFrame::paintEvent(QPaintEvent *event)
     //     painter.drawLine( x0+x_Horizental_left,y0+y_Horizental_left, x0+x_Horizental_right,y0+y_Horizental_right);
     //     painter.drawLine( x0+x_Vertical_up,y0+y_Vertical_up, x0+x_Vertical_down,y0+y_Vertical_down);
     // }
+}
+
+void ViedoFrame::on_pushButton_play_clicked()
+{
+    is_play = !is_play;
+    if(is_play){
+        mPlayer->startPlay();
+        ui->pushButton_play->setText("playing");
+    }
+    else{
+        mPlayer->stopPlay();
+        ui->pushButton_play->setText("play");
+    }
+
+
+}
+
+
+void ViedoFrame::on_pushButton_record_clicked()
+{
+
+
+    is_recording = !is_recording;
+    if(is_play){
+        mPlayer->startRecord();
+        ui->pushButton_play->setText("recording");
+    }
+    else{
+        ui->pushButton_play->setText("record");
+        mPlayer->stopRecord();
+    }
+
+}
+
+
+QImage ViedoFrame::transBufferToImage(const uchar *buff,int width,int height,int fotmat){
+
+    if(!buff){
+        NULL;
+    }
+    QImage tmpImg(buff,width,height,QImage::Format_RGBA8888);
+    QImage image = tmpImg.copy(); //把图像复制一份 传递给界面显示
+    return image;
 }
