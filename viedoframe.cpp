@@ -13,7 +13,7 @@ ViedoFrame::ViedoFrame(QWidget *parent) :
 void ViedoFrame::callback(uchar* buffer,int width,int height,void* object_ptr){
 
     ViedoFrame * vfptr = (ViedoFrame*) object_ptr;
-    vfptr->mImage = vfptr->transBufferToImage(buffer,width,height);
+    vfptr->transBufferToImage(buffer,width,height);
     vfptr->update();
 
 }
@@ -149,12 +149,13 @@ void ViedoFrame::on_pushButton_record_clicked()
 }
 
 
-QImage ViedoFrame::transBufferToImage(const uchar *buff,int width,int height,int fotmat){
+void ViedoFrame::transBufferToImage(const uchar *buff,int width,int height,int fotmat){
 
     if(!buff){
         NULL;
     }
     QImage tmpImg(buff,width,height,QImage::Format_RGBA8888);
-    QImage image = tmpImg.copy(); //把图像复制一份 传递给界面显示
-    return image;
+    //QImage image = tmpImg.copy(); //把图像复制一份 传递给界面显示
+    mImage = tmpImg.copy();
+
 }

@@ -12,10 +12,7 @@
 #include <string>
 #include <thread>
 #include <chrono>
-//2017.8.10---lizhen
-class VlcInstance;
-class VlcMedia;
-class VlcMediaPlayer;
+
 typedef unsigned char uchar ;
 typedef void (*MyCallBackFunc)(uchar* ,int,int,void*);
 class Player
@@ -33,6 +30,7 @@ public:
     void setUrl(std::string url);
     void startRecord();
     void stopRecord();
+    bool getRecordStatus();
     void stop();
     bool registerCallBack(void (*callfuct)(uchar*,int,int,void*),void*ptr);
 
@@ -42,18 +40,10 @@ protected:
 
 private:
     void start();
-
-
-
-    //2017.8.10---lizhen
-    VlcInstance *_instance;
-    VlcMedia *_media;
-    VlcMediaPlayer *_player;
     bool is_start;
     bool is_pause ;
     bool is_record ;
     bool is_stop;
-
     std::string rtsp_url;
     MyCallBackFunc mpCallbackfun;
     void *mptr;

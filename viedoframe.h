@@ -33,7 +33,7 @@ private:
     bool open_red=false;
     bool is_play = false;
     bool is_recording = false;
-    QImage transBufferToImage(const uchar *buff,int width,int height,int fotmat = QImage::Format_RGBA8888);
+    void transBufferToImage(const uchar *buff,int width,int height,int fotmat = QImage::Format_RGBA8888);
     Player *mPlayer;
 };
 

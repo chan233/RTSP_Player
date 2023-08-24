@@ -18,5 +18,8 @@ QImage tmpImg((uchar *)out_buffer,pCodecCtx->width,pCodecCtx->height,QImage::For
 
 
 -> 写 c11 线程 ok
--> 把 frame 写到主界面 ，布局
+-> 把 frame 写到主界面 ，布局 OK
+
+
 -> 写 test
+-> 多路复用

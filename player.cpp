@@ -1,12 +1,5 @@
-/**
- * 李震
- * 我的码云：https://git.oschina.net/git-lizhen
- * 我的CSDN博客：http://blog.csdn.net/weixin_38215395
- * 联系：QQ1039953685
- */
 
-#include <QDebug>
-#include "player.h"
+
 extern "C"
 {
 
@@ -17,7 +10,8 @@ extern "C"
 #include "libavutil/imgutils.h"
 
 }
-
+#include "player.h"
+#include <QDebug>
 #include <stdio.h>
 #include<iostream>
 using namespace std;
@@ -45,6 +39,7 @@ void Player::startPlay()
     ///
     if(!is_start){
         this->start();
+        qDebug()<<"start thread";
     }
 
     is_start = true;
@@ -66,11 +61,13 @@ void Player::startRecord(){
 void Player::stopRecord(){
     is_record = false;
 }
-
+bool Player::getRecordStatus(){
+    return is_record;
+}
 void Player::run(void* pParam)
 {
 
-    Player *pplayer = (Player *)pParam;
+    Player *ptrPlayerObject = (Player *)pParam;
     AVFormatContext *pFormatCtx;
     AVCodecContext *pCodecCtx;
     const AVCodec *pCodec;
@@ -270,12 +267,18 @@ void Player::run(void* pParam)
 
     while (1)
     {
-        if(pplayer->is_stop){
+        if(ptrPlayerObject->is_stop){
+            qDebug()<<"playstop";
             break;
         }
         if (av_read_frame(pFormatCtx, packet) < 0)
         {
-            av_write_trailer(outFmtCtx);
+            if(ptrPlayerObject->getRecordStatus()){
+                 av_write_trailer(outFmtCtx);
+                 ptrPlayerObject->stopRecord();
+            }
+
+             qDebug()<<"readframe over";
             break;
             //continue; //这里认为视频读取完了
         }
@@ -296,7 +299,7 @@ void Player::run(void* pParam)
                 //把这个RGB数据 用QImage加载
                 //QImage tmpImg((uchar *)out_buffer,pCodecCtx->width,pCodecCtx->height,QImage::Format_RGBA8888);
                 //QImage image = tmpImg.copy(); //把图像复制一份 传递给界面显示
-                pplayer->mpCallbackfun((uchar *)out_buffer,pCodecCtx->width,pCodecCtx->height,pplayer->mptr); // 改为回调
+                ptrPlayerObject->mpCallbackfun((uchar *)out_buffer,pCodecCtx->width,pCodecCtx->height,ptrPlayerObject->mptr); // 改为回调
                 //emit sig_GetOneFrame(image);  //发送信号
                 //    ///2017.8.11---lizhen
                 //             //提取出图像中的R数据
@@ -314,9 +317,14 @@ void Player::run(void* pParam)
 
                 // mp4
 
+                if(ptrPlayerObject->is_record){
+                     wirteMP4(packet,inVStream,outVStream,outFmtCtx,outVStreamIndex);
+                }
 
-                wirteMP4(packet,inVStream,outVStream,outFmtCtx,outVStreamIndex);
+
                 //end of mp4
+                //msleep(0.02); //停一停  不然放的太快了
+                std::this_thread::sleep_for(std::chrono::milliseconds(20)); //修复调帧卡顿
             }
 
 
@@ -324,14 +332,14 @@ void Player::run(void* pParam)
         av_packet_unref(packet); //释放资源,否则内存会一直上升
 
         ///2017.8.7---lizhen
-        //msleep(0.02); //停一停  不然放的太快了
-        std::this_thread::sleep_for(std::chrono::microseconds(20));
+
 
     }
     av_free(out_buffer);
     av_free(pFrameRGB);
     avcodec_close(pCodecCtx);
     avformat_close_input(&pFormatCtx);
+     qDebug()<<"quit thread";
 }
 int wirteMP4(AVPacket *packet,AVStream *inVStream, AVStream *outVStream , AVFormatContext *outFmtCtx,int outVStreamIndex){
     // mp4
