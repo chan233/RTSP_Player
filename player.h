@@ -11,6 +11,7 @@
 
 #include <string>
 #include <thread>
+#include <chrono>
 //2017.8.10---lizhen
 class VlcInstance;
 class VlcMedia;

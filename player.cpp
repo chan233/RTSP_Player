@@ -97,11 +97,11 @@ void Player::run(void* pParam)
     char option_value2[]="100";
     av_dict_set(&avdic,option_key2,option_value2,0);
     ///rtsp地址，可根据实际情况修改
-    //char url[]="rtsp://192.168.151.34:8554/123";
-    if(pplayer->rtsp_url.empty()){
-        return;
-    }
-    const char *url = pplayer->rtsp_url.c_str();
+    char url[]="rtsp://192.168.1.12:8554/123";
+//    if(pplayer->rtsp_url.empty()){
+//        return;
+//    }
+//    const char *url = pplayer->rtsp_url.c_str();
     if (avformat_open_input(&pFormatCtx, url, NULL, &avdic) != 0) {
         printf("can't open the file. \n");
         return;
@@ -325,6 +325,8 @@ void Player::run(void* pParam)
 
         ///2017.8.7---lizhen
         //msleep(0.02); //停一停  不然放的太快了
+        std::this_thread::sleep_for(std::chrono::microseconds(20));
+
     }
     av_free(out_buffer);
     av_free(pFrameRGB);

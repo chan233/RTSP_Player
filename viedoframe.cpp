@@ -13,7 +13,7 @@ ViedoFrame::ViedoFrame(QWidget *parent) :
 void ViedoFrame::callback(uchar* buffer,int width,int height,void* object_ptr){
 
     ViedoFrame * vfptr = (ViedoFrame*) object_ptr;
-    transBufferToImage(buffer,width,height);
+    vfptr->mImage = vfptr->transBufferToImage(buffer,width,height);
     vfptr->update();
 
 }
@@ -118,7 +118,9 @@ void ViedoFrame::on_pushButton_play_clicked()
 {
     is_play = !is_play;
     if(is_play){
+        mPlayer->setUrl(ui->lineEdit_url->text().toStdString());
         mPlayer->startPlay();
+
         ui->pushButton_play->setText("playing");
     }
     else{

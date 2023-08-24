@@ -37,7 +37,7 @@
       <item>
        <widget class="QLineEdit" name="lineEdit_url">
         <property name="text">
-         <string>rtsp://127.0.0.1:554/123</string>
+         <string>rtsp://127.0.0.1:8554/123</string>
         </property>
        </widget>
       </item>
