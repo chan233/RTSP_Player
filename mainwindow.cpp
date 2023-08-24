@@ -11,7 +11,7 @@
 #include <QPainter>
 #include <QInputDialog>
 #include <QtMath>
-
+#include <QGridLayout>
 #include<iostream>
 using namespace std;
 MainWindow::MainWindow(QWidget *parent) :
@@ -28,7 +28,23 @@ MainWindow::MainWindow(QWidget *parent) :
     connect(ui->Open_red,&QAction::triggered,this,&MainWindow::slotOpenRed);
     connect(ui->Close_Red,&QAction::triggered,this,&MainWindow::slotCloseRed);
 
-    mPlayer->startPlay();
+    //mPlayer->startPlay();
+
+    QWidget* centralWidget = new QWidget(this);
+    setCentralWidget(centralWidget);
+
+    QGridLayout* gridLayout = new QGridLayout(centralWidget);
+    gridLayout->setSpacing(10);
+
+    videoFrame[0] = new ViedoFrame(this);
+    videoFrame[1]  = new ViedoFrame(this);
+    videoFrame[2]  = new ViedoFrame(this);
+    videoFrame[3]  = new ViedoFrame(this);
+
+    gridLayout->addWidget( videoFrame[0] , 0, 0);
+    gridLayout->addWidget( videoFrame[1] , 0, 1);
+    gridLayout->addWidget( videoFrame[2] , 1, 0);
+    gridLayout->addWidget( videoFrame[3] , 1, 1);
 }
 
 MainWindow::~MainWindow()
@@ -58,26 +74,26 @@ void MainWindow::paintEvent(QPaintEvent *event)
     painter.drawImage(QPoint(x,y),img); //画出图像
 
     if(open_red==true){
-    ///2017.8.12
-    QWidget *red_video=new QWidget(this);
-    red_video->resize(this->width()/3,this->height()/3);
-    ///2017.8.11---lizhen
-    //提取出图像中的R数据
-    painter.setBrush(Qt::white);
-    painter.drawRect(0, 0, red_video->width(),red_video->height()); //先画成白色
+        ///2017.8.12
+        QWidget *red_video=new QWidget(this);
+        red_video->resize(this->width()/3,this->height()/3);
+        ///2017.8.11---lizhen
+        //提取出图像中的R数据
+        painter.setBrush(Qt::white);
+        painter.drawRect(0, 0, red_video->width(),red_video->height()); //先画成白色
 
-    if (R_mImage.size().width() <= 0) return;
+        if (R_mImage.size().width() <= 0) return;
 
-    ///将图像按比例缩放成和窗口一样大小
-    QImage R_img = R_mImage.scaled(red_video->size(),Qt::KeepAspectRatio);
+        ///将图像按比例缩放成和窗口一样大小
+        QImage R_img = R_mImage.scaled(red_video->size(),Qt::KeepAspectRatio);
 
-    int R_x = red_video->width() - R_img.width();
-    int R_y = red_video->height() - R_img.height();
+        int R_x = red_video->width() - R_img.width();
+        int R_y = red_video->height() - R_img.height();
 
-    R_x /= 2;
-    R_y /= 2;
+        R_x /= 2;
+        R_y /= 2;
 
-    painter.drawImage(QPoint(R_x,R_y),R_img);  //画出图像
+        painter.drawImage(QPoint(R_x,R_y),R_img);  //画出图像
     }
 
     ///2017.8.10---lizhen
@@ -99,7 +115,7 @@ void MainWindow::paintEvent(QPaintEvent *event)
     double y_Vertical_up=length*qCos(alpha);
     double x_Vertical_down=-length*qSin(alpha);
     double y_Vertical_down=-length*qCos(alpha);
-//666
+    //666
     ///水平参考坐标系，2017.8.7---lizhen
     painter.setPen(QPen(Qt::blue,1,Qt::DotLine));
     painter.drawLine( x0-40,y0, x0+40,y0);

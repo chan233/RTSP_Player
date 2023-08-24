@@ -34,7 +34,7 @@ private:
     Ui::MainWindow *ui;
 
     Player *mPlayer; //播放线程
-    ViedoFrame videoFrame[4];
+    ViedoFrame *videoFrame[4];
 
     QImage mImage; //记录当前的图像
     QImage R_mImage; //2017.8.11---lizhen
