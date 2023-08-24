@@ -1,10 +1,4 @@
-﻿/**
- * 李震
- * 我的码云：https://git.oschina.net/git-lizhen
- * 我的CSDN博客：http://blog.csdn.net/weixin_38215395
- * 联系：QQ1039953685
- */
-
+﻿
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
 

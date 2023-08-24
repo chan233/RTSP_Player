@@ -2,6 +2,8 @@
 #include "ui_viedoframe.h"
 #include <QtMath>
 #include <QPainter>
+#include <QDebug>
+#include <iostream>
 ViedoFrame::ViedoFrame(QWidget *parent) :
     QMainWindow(parent),
     ui(new Ui::ViedoFrame)
@@ -39,6 +41,8 @@ void ViedoFrame::slotGetRFrame(QImage img)
 void ViedoFrame::paintEvent(QPaintEvent *event)
 {
 
+
+
     QPainter painter(this);
 
     painter.setBrush(Qt::white);
@@ -47,14 +51,17 @@ void ViedoFrame::paintEvent(QPaintEvent *event)
     if (mImage.size().width() <= 0) return;
 
     ///将图像按比例缩放成和窗口一样大小
-    QImage img = mImage.scaled(this->size(),Qt::KeepAspectRatio);
-
+    //QImage img = mImage.scaled(this->size(),Qt::KeepAspectRatio);
+    QImage img = mImage.scaled(this->ui->frame->size(),Qt::KeepAspectRatio);
     int x = this->width() - img.width();
     int y = this->height() - img.height();
 
     x /= 2;
     y /= 2;
 
+//    qDebug()<<"x==> "<<x<<"y==> "<<y;
+//    qDebug()<<"this->width()"<< this->width()<<"this->height() "<<this->height();
+//    qDebug()<<"img.width()"<< img.width()<<"img.height() "<<img.height();
     painter.drawImage(QPoint(x,y),img); //画出图像
 
     if(open_red==true){
@@ -86,19 +93,19 @@ void ViedoFrame::paintEvent(QPaintEvent *event)
     double y0=this->height()/2;
 
     //载体偏移角度，可从设备处获得
-    double alpha=2;             //横滚角alpha
-    int length=60;
+    //    double alpha=2;             //横滚角alpha
+    //    int length=60;
 
     //设备偏移后的“水平”参考坐标
     //横滚角产生
-    double x_Horizental_right=length*qCos(alpha);
-    double y_Horizental_right=-length*qSin(alpha);
-    double x_Horizental_left=-length*qCos(alpha);
-    double y_Horizental_left=length*qSin(alpha);
-    double x_Vertical_up=length*qSin(alpha);
-    double y_Vertical_up=length*qCos(alpha);
-    double x_Vertical_down=-length*qSin(alpha);
-    double y_Vertical_down=-length*qCos(alpha);
+    //    double x_Horizental_right=length*qCos(alpha);
+    //    double y_Horizental_right=-length*qSin(alpha);
+    //    double x_Horizental_left=-length*qCos(alpha);
+    //    double y_Horizental_left=length*qSin(alpha);
+    //    double x_Vertical_up=length*qSin(alpha);
+    //    double y_Vertical_up=length*qCos(alpha);
+    //    double x_Vertical_down=-length*qSin(alpha);
+    //    double y_Vertical_down=-length*qCos(alpha);
 
     ///水平参考坐标系，2017.8.7---lizhen
     painter.setPen(QPen(Qt::blue,1,Qt::DotLine));

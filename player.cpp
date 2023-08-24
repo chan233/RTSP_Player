@@ -17,52 +17,64 @@ extern "C"
 using namespace std;
 void openMp4File(AVFormatContext *outFmtCtx,AVCodecParameters *codecPara);
 int wirteMP4(AVPacket *packet,AVStream *inVStream, AVStream *outVStream , AVFormatContext *outFmtCtx,int outVStreamIndex);
-Player::Player():is_start(false),is_pause(false),is_record(false),is_stop(false){}
+Player::Player():_isStart(false),_isPause(false),_isRecord(false),_isStop(false){}
 
 Player::~Player()
 {
 
 }
 void Player::setUrl(std::string url){
-    rtsp_url = url;
+    _rtsp_url = url;
 }
-void Player::start(){
+
+std::string Player::getUrl(){
+    return _rtsp_url;
+}
+void Player::startStreamThread(){
+
     std::thread t(this->run,this);
     t.detach();
 }
 void Player::stop(){
-    is_stop = true;
+    _isStop = true;
 }
-void Player::startPlay()
+bool Player::startPlay()
 {
-    ///调用 QThread 的start函数 将会自动执行下面的run函数 run函数是一个新的线程
-    ///
-    if(!is_start){
-        this->start();
-        qDebug()<<"start thread";
+
+    if(_rtsp_url.empty()){
+         _isStart =false;
+        return false;
+    }
+    if(!_isStart){
+        this->startStreamThread();
+          _isStart = true;
     }
 
-    is_start = true;
+
+    return true;
 
 }
 
 void Player::stopPlay(){
-    is_start = false;
+    _isStart = false;
 }
+bool Player::getPlayStatus(){
+    return _isStart;
+}
+
 void Player::pausePlay(){
 
-    is_pause = true;
+    _isPause = true;
 }
-
 
 void Player::startRecord(){
-    is_record = true;
+    _isRecord = true;
 }
 void Player::stopRecord(){
-    is_record = false;
+    _isRecord = false;
 }
 bool Player::getRecordStatus(){
-    return is_record;
+    return _isRecord;
 }
 void Player::run(void* pParam)
 {
@@ -94,11 +106,11 @@ void Player::run(void* pParam)
     char option_value2[]="100";
     av_dict_set(&avdic,option_key2,option_value2,0);
     ///rtsp地址，可根据实际情况修改
-    char url[]="rtsp://192.168.1.12:8554/123";
-//    if(pplayer->rtsp_url.empty()){
-//        return;
-//    }
-//    const char *url = pplayer->rtsp_url.c_str();
+    //char url[]="rtsp://192.168.1.12:8554/123";
+    if(ptrPlayerObject->_rtsp_url.empty()){
+        return;
+    }
+    const char *url = ptrPlayerObject->_rtsp_url.c_str();
     if (avformat_open_input(&pFormatCtx, url, NULL, &avdic) != 0) {
         printf("can't open the file. \n");
         return;
@@ -115,6 +127,7 @@ void Player::run(void* pParam)
     ///循环查找视频中包含的流信息，直到找到视频类型的流
     ///便将其记录下来 保存到videoStream变量中
     ///这里我们现在只处理视频流  音频流先不管他
+
     for (i = 0; i < pFormatCtx->nb_streams; i++) {
         if (pFormatCtx->streams[i]->codecpar->codec_type == AVMEDIA_TYPE_VIDEO) {
             videoStream = i;
@@ -267,7 +280,7 @@ void Player::run(void* pParam)
 
     while (1)
     {
-        if(ptrPlayerObject->is_stop){
+        if(ptrPlayerObject->_isStop){
             qDebug()<<"playstop";
             break;
         }
@@ -299,7 +312,7 @@ void Player::run(void* pParam)
                 //把这个RGB数据 用QImage加载
                 //QImage tmpImg((uchar *)out_buffer,pCodecCtx->width,pCodecCtx->height,QImage::Format_RGBA8888);
                 //QImage image = tmpImg.copy(); //把图像复制一份 传递给界面显示
-                ptrPlayerObject->mpCallbackfun((uchar *)out_buffer,pCodecCtx->width,pCodecCtx->height,ptrPlayerObject->mptr); // 改为回调
+                ptrPlayerObject->_ptrCallbackfun((uchar *)out_buffer,pCodecCtx->width,pCodecCtx->height,ptrPlayerObject->_ptrParent); // 改为回调
                 //emit sig_GetOneFrame(image);  //发送信号
                 //    ///2017.8.11---lizhen
                 //             //提取出图像中的R数据
@@ -317,7 +330,7 @@ void Player::run(void* pParam)
 
                 // mp4
 
-                if(ptrPlayerObject->is_record){
+                if(ptrPlayerObject->_isRecord){
                      wirteMP4(packet,inVStream,outVStream,outFmtCtx,outVStreamIndex);
                 }
 
@@ -448,7 +461,7 @@ bool Player::registerCallBack(void (*callfuct)(uchar* ,int,int,void*) ,void *ptr
 
 
 
-    mpCallbackfun = callfuct;
-    mptr = ptr;
+    _ptrCallbackfun = callfuct;
+    _ptrParent = ptr;
     return true;
 }

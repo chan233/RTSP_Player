@@ -1,11 +1,4 @@
-﻿/**
- * 李震
- * 我的码云：https://git.oschina.net/git-lizhen
- * 我的CSDN博客：http://blog.csdn.net/weixin_38215395
- * 联系：QQ1039953685
- */
-
-#ifndef MAINWINDOW_H
+﻿#ifndef MAINWINDOW_H
 #define MAINWINDOW_H
 
 #include <QMainWindow>

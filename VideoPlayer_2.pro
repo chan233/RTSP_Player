@@ -4,7 +4,7 @@
 #
 #-------------------------------------------------
 
-QT       += core gui
+QT       += core gui testlib
 
 greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 
@@ -14,12 +14,14 @@ TEMPLATE = app
 
 SOURCES += main.cpp \
     player.cpp \
+    testclass.cpp \
     videoplayer.cpp \
     mainwindow.cpp \
     viedoframe.cpp
 
 HEADERS  += \
     player.h \
+    testclass.h \
     videoplayer.h \
     mainwindow.h \
     viedoframe.h

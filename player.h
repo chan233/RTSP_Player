@@ -24,13 +24,18 @@ public:
 
     ~Player();
 
-    void startPlay();
-    void pausePlay();
+    bool startPlay();
     void stopPlay();
-    void setUrl(std::string url);
+    bool getPlayStatus();
+    void pausePlay();
+
     void startRecord();
     void stopRecord();
     bool getRecordStatus();
+
+    void setUrl(std::string url);
+    std::string getUrl();
+
     void stop();
     bool registerCallBack(void (*callfuct)(uchar*,int,int,void*),void*ptr);
 
@@ -39,14 +44,15 @@ protected:
     static void run(void* pParam);
 
 private:
-    void start();
-    bool is_start;
-    bool is_pause ;
-    bool is_record ;
-    bool is_stop;
-    std::string rtsp_url;
-    MyCallBackFunc mpCallbackfun;
-    void *mptr;
+    void startStreamThread();
+    bool _isStart;
+    bool _isPause ;
+    bool _isRecord ;
+    bool _isStop;
+    std::string _rtsp_url;
+    MyCallBackFunc _ptrCallbackfun;
+    void *_ptrParent;
+
 
 };
 

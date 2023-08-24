@@ -1,14 +1,16 @@
 ﻿
-/**
- * 李震
- * 我的码云：https://git.oschina.net/git-lizhen
- * 我的CSDN博客：http://blog.csdn.net/weixin_38215395
- * 联系：QQ1039953685
- */
 
 #include <QApplication>
-#include <QTextCodec>
 
+
+//#define QTEST_
+#ifdef QTEST_
+
+#include "testclass.h"
+
+QTEST_MAIN(TestClass);
+#else
+#include <QTextCodec>
 #include "mainwindow.h"
 
 int main(int argc, char *argv[])
@@ -21,6 +23,12 @@ int main(int argc, char *argv[])
     MainWindow w;
     w.show();
 
+
+
     return a.exec();
 }
+
+#endif
+
+
 
