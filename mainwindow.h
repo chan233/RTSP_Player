@@ -36,11 +36,14 @@ private:
 
     bool open_red=false;
 
+
 private slots:
     void slotGetOneFrame(QImage img);
     void slotGetRFrame(QImage img);///2017.8.11---lizhen
     bool slotOpenRed();        ///2017.8.12---lizhen
     bool slotCloseRed();       ///2017.8.12
+
+
 
 };
 

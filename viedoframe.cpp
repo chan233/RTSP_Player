@@ -4,13 +4,15 @@
 #include <QPainter>
 #include <QDebug>
 #include <iostream>
+#include <QThread>
 ViedoFrame::ViedoFrame(QWidget *parent) :
     QMainWindow(parent),
     ui(new Ui::ViedoFrame)
 {
     ui->setupUi(this);
-    mPlayer = new Player;
-    mPlayer->registerCallBack(callback,(void*)this);
+
+    mPlayer = std::make_shared<Player>();
+
 }
 void ViedoFrame::callback(uchar* buffer,int width,int height,void* object_ptr){
 
@@ -21,23 +23,13 @@ void ViedoFrame::callback(uchar* buffer,int width,int height,void* object_ptr){
 }
 ViedoFrame::~ViedoFrame()
 {
+
     delete ui;
 }
 
 
 
 
-void ViedoFrame::slotGetOneFrame(QImage img)
-{
-    mImage = img;
-    update(); //调用update将执行 paintEvent函数
-}
-///小窗口显示
-void ViedoFrame::slotGetRFrame(QImage img)
-{
-    R_mImage = img;
-    update(); //调用update将执行 paintEvent函数
-}
 void ViedoFrame::paintEvent(QPaintEvent *event)
 {
 
@@ -51,17 +43,14 @@ void ViedoFrame::paintEvent(QPaintEvent *event)
     if (mImage.size().width() <= 0) return;
 
     ///将图像按比例缩放成和窗口一样大小
-    //QImage img = mImage.scaled(this->size(),Qt::KeepAspectRatio);
+
     QImage img = mImage.scaled(this->ui->frame->size(),Qt::KeepAspectRatio);
-    int x = this->width() - img.width();
-    int y = this->height() - img.height();
 
-    x /= 2;
-    y /= 2;
-
-//    qDebug()<<"x==> "<<x<<"y==> "<<y;
-//    qDebug()<<"this->width()"<< this->width()<<"this->height() "<<this->height();
-//    qDebug()<<"img.width()"<< img.width()<<"img.height() "<<img.height();
+    int x  = this->ui->frame->x();
+    int y =    this->ui->frame->y();
+    //    qDebug()<<"x==> "<<x<<"y==> "<<y;
+    //    qDebug()<<"this->width()"<< this->width()<<"this->height() "<<this->height();
+    //    qDebug()<<"img.width()"<< img.width()<<"img.height() "<<img.height();
     painter.drawImage(QPoint(x,y),img); //画出图像
 
     if(open_red==true){
@@ -125,14 +114,28 @@ void ViedoFrame::on_pushButton_play_clicked()
 {
     is_play = !is_play;
     if(is_play){
-        mPlayer->setUrl(ui->lineEdit_url->text().toStdString());
-        mPlayer->startPlay();
+        QString url = ui->lineEdit_url->text();
+        mPlayer->setUrl(url.toStdString());
+
+        if(1){
+
+            mPlayer->registerCallBack(callback,(void*)this);
+            mPlayer->startPlay();
+        }
+        else{
+
+        }
+
 
         ui->pushButton_play->setText("playing");
     }
     else{
         mPlayer->stopPlay();
-        ui->pushButton_play->setText("play");
+        if(mPlayer->getPlayStatus() == false){
+                ui->pushButton_play->setText("play");
+        }
+
+
     }
 
 
@@ -162,7 +165,6 @@ void ViedoFrame::transBufferToImage(const uchar *buff,int width,int height,int f
         NULL;
     }
     QImage tmpImg(buff,width,height,QImage::Format_RGBA8888);
-    //QImage image = tmpImg.copy(); //把图像复制一份 传递给界面显示
     mImage = tmpImg.copy();
 
 }

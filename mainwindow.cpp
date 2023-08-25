@@ -30,15 +30,15 @@ MainWindow::MainWindow(QWidget *parent) :
     QGridLayout* gridLayout = new QGridLayout(centralWidget);
     gridLayout->setSpacing(10);
 
-    videoFrame[0] = new ViedoFrame(this);
-    videoFrame[1]  = new ViedoFrame(this);
-    videoFrame[2]  = new ViedoFrame(this);
-    videoFrame[3]  = new ViedoFrame(this);
+    videoFrame[0] = new ViedoFrame();
+    videoFrame[1]  = new ViedoFrame();
+//    videoFrame[2]  = new ViedoFrame();
+//    videoFrame[3]  = new ViedoFrame();
 
     gridLayout->addWidget( videoFrame[0] , 0, 0);
     gridLayout->addWidget( videoFrame[1] , 0, 1);
-    gridLayout->addWidget( videoFrame[2] , 1, 0);
-    gridLayout->addWidget( videoFrame[3] , 1, 1);
+//    gridLayout->addWidget( videoFrame[2] , 1, 0);
+//    gridLayout->addWidget( videoFrame[3] , 1, 1);
 }
 
 MainWindow::~MainWindow()
@@ -147,7 +147,6 @@ bool MainWindow::slotCloseRed()
     open_red=false;
     return open_red;
 }
-
 
 
 

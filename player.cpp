@@ -12,8 +12,12 @@ extern "C"
 }
 #include "player.h"
 #include <QDebug>
+#include <QString>
 #include <stdio.h>
-#include<iostream>
+#include <iostream>
+#include <sstream>
+
+#include <QDateTime>
 using namespace std;
 void openMp4File(AVFormatContext *outFmtCtx,AVCodecParameters *codecPara);
 int wirteMP4(AVPacket *packet,AVStream *inVStream, AVStream *outVStream , AVFormatContext *outFmtCtx,int outVStreamIndex);
@@ -21,7 +25,7 @@ Player::Player():_isStart(false),_isPause(false),_isRecord(false),_isStop(false)
 
 Player::~Player()
 {
-
+    threadLog("thread delete");
 }
 void Player::setUrl(std::string url){
     _rtsp_url = url;
@@ -35,19 +39,18 @@ void Player::startStreamThread(){
     std::thread t(this->run,this);
     t.detach();
 }
-void Player::stop(){
-    _isStop = true;
-}
+
 bool Player::startPlay()
 {
 
     if(_rtsp_url.empty()){
-         _isStart =false;
+        _isStart =false;
         return false;
     }
     if(!_isStart){
         this->startStreamThread();
-          _isStart = true;
+        _isStart = true;
+        _isStop = false;
     }
 
 
@@ -56,7 +59,15 @@ bool Player::startPlay()
 }
 
 void Player::stopPlay(){
-    _isStart = false;
+    if(!_isStop){
+         _isStop = true;
+    }
+    if(_isStart){
+        _isStart = false;
+    }
+
+
+
 }
 bool Player::getPlayStatus(){
     return _isStart;
@@ -71,7 +82,10 @@ void Player::startRecord(){
     _isRecord = true;
 }
 void Player::stopRecord(){
-    _isRecord = false;
+    if(_isRecord){
+         _isRecord = false;
+    }
+
 }
 bool Player::getRecordStatus(){
     return _isRecord;
@@ -79,6 +93,8 @@ bool Player::getRecordStatus(){
 void Player::run(void* pParam)
 {
 
+
+    threadLog("thread start");
     Player *ptrPlayerObject = (Player *)pParam;
     AVFormatContext *pFormatCtx;
     AVCodecContext *pCodecCtx;
@@ -147,7 +163,9 @@ void Player::run(void* pParam)
 
     //save mp4
 
-    const char * outFileName = "save.mp4";
+    QString sTime = QDateTime::currentDateTime().toString("yyyyMMddHHmmss") + "save.mp4";
+
+    const char * outFileName =  sTime.toLatin1().data();
 
     int outVStreamIndex = -1;
 
@@ -281,17 +299,17 @@ void Player::run(void* pParam)
     while (1)
     {
         if(ptrPlayerObject->_isStop){
-            qDebug()<<"playstop";
+            threadLog("play stream stop");
             break;
         }
         if (av_read_frame(pFormatCtx, packet) < 0)
         {
             if(ptrPlayerObject->getRecordStatus()){
-                 av_write_trailer(outFmtCtx);
-                 ptrPlayerObject->stopRecord();
+                av_write_trailer(outFmtCtx);
+                ptrPlayerObject->stopRecord();
             }
 
-             qDebug()<<"readframe over";
+            threadLog("readframe over");
             break;
             //continue; //这里认为视频读取完了
         }
@@ -309,42 +327,26 @@ void Player::run(void* pParam)
                           (uint8_t const * const *) pFrame->data,
                           pFrame->linesize, 0, pCodecCtx->height, pFrameRGB->data,
                           pFrameRGB->linesize);
-                //把这个RGB数据 用QImage加载
-                //QImage tmpImg((uchar *)out_buffer,pCodecCtx->width,pCodecCtx->height,QImage::Format_RGBA8888);
-                //QImage image = tmpImg.copy(); //把图像复制一份 传递给界面显示
-                ptrPlayerObject->_ptrCallbackfun((uchar *)out_buffer,pCodecCtx->width,pCodecCtx->height,ptrPlayerObject->_ptrParent); // 改为回调
-                //emit sig_GetOneFrame(image);  //发送信号
-                //    ///2017.8.11---lizhen
-                //             //提取出图像中的R数据
-                //             for(int i=0;i<pCodecCtx->width;i++)
-                //             {
-                //                 for(int j=0;j<pCodecCtx->height;j++)
-                //                 {
-                //                     QRgb rgb=image.pixel(i,j);
-                //                     int r=qRed(rgb);
-                //                     image.setPixel(i,j,qRgb(r,0,0));
-                //                 }
-                //             }
-                // emit sig_GetRFrame(image);
+                threadLog("working...");
+                ptrPlayerObject->_ptrCallbackfun((uchar *)out_buffer,pCodecCtx->width,pCodecCtx->height\
+                                                 ,ptrPlayerObject->_ptrParent); // emit改为回调
 
-
-                // mp4
+                // save mp4
 
                 if(ptrPlayerObject->_isRecord){
-                     wirteMP4(packet,inVStream,outVStream,outFmtCtx,outVStreamIndex);
+                    wirteMP4(packet,inVStream,outVStream,outFmtCtx,outVStreamIndex);
                 }
 
-
                 //end of mp4
-                //msleep(0.02); //停一停  不然放的太快了
-                std::this_thread::sleep_for(std::chrono::milliseconds(20)); //修复调帧卡顿
+
+                std::this_thread::sleep_for(std::chrono::milliseconds(50)); //修复调帧卡顿,改 msleep  为 std::sleep_for
             }
 
 
         }
         av_packet_unref(packet); //释放资源,否则内存会一直上升
 
-        ///2017.8.7---lizhen
+
 
 
     }
@@ -352,7 +354,15 @@ void Player::run(void* pParam)
     av_free(pFrameRGB);
     avcodec_close(pCodecCtx);
     avformat_close_input(&pFormatCtx);
-     qDebug()<<"quit thread";
+    ptrPlayerObject->stopPlay();
+    threadLog("thread exit");
+
+}
+void Player::threadLog(std::string logmessage){
+    std::thread::id id = std::this_thread::get_id();
+    std::stringstream ssin;
+    ssin << id;
+    qDebug()<<"my_debug_message:" << QString::fromStdString(logmessage)<<"threadID : "<<QString::fromStdString(ssin.str());
 }
 int wirteMP4(AVPacket *packet,AVStream *inVStream, AVStream *outVStream , AVFormatContext *outFmtCtx,int outVStreamIndex){
     // mp4

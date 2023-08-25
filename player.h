@@ -12,6 +12,7 @@
 #include <string>
 #include <thread>
 #include <chrono>
+#include <memory>
 
 typedef unsigned char uchar ;
 typedef void (*MyCallBackFunc)(uchar* ,int,int,void*);
@@ -36,13 +37,12 @@ public:
     void setUrl(std::string url);
     std::string getUrl();
 
-    void stop();
     bool registerCallBack(void (*callfuct)(uchar*,int,int,void*),void*ptr);
 
 
 protected:
     static void run(void* pParam);
-
+static void threadLog( std::string logmessage);
 private:
     void startStreamThread();
     bool _isStart;

@@ -20,11 +20,14 @@ public:
 protected:
     void paintEvent(QPaintEvent *event);
 private slots:
-    void slotGetOneFrame(QImage img);
-    void slotGetRFrame(QImage img);///2017.8.11---lizhen
+
     void on_pushButton_play_clicked();
 
     void on_pushButton_record_clicked();
+
+
+signals:
+    void sig_GetOneFrame(bool); //每获取到一帧图像 就发送此信号
 
 private:
     Ui::ViedoFrame *ui;
@@ -34,7 +37,8 @@ private:
     bool is_play = false;
     bool is_recording = false;
     void transBufferToImage(const uchar *buff,int width,int height,int fotmat = QImage::Format_RGBA8888);
-    Player *mPlayer;
+
+    std::shared_ptr<Player> mPlayer;
 };
 
 #endif // VIEDOFRAME_H
